@@ -1,4 +1,4 @@
-from bottle import route, request, run, post
+from bottle import route, request, run
 
 import json
 
@@ -18,6 +18,7 @@ def status_index():
     except MySQLdb.Error:
         return response_dict[4]
 
+
 @route("/db/api/clear/", method="POST")
 def clear_index():
     try:
@@ -26,7 +27,6 @@ def clear_index():
         return json.dumps(result)
     except MySQLdb.Error:
         return response_dict[4]
-
 
 
 @route("/db/api/user/create/", method="POST")
@@ -151,6 +151,7 @@ def create_forum_index():
     except NameError:
         return json.dumps(response_dict[2])
 
+
 @route("/db/api/post/create/", method="POST")
 def create_post_index():
     try:
@@ -176,6 +177,137 @@ def create_post_index():
         return json.dumps(response_dict[2])
     except NameError:
         return json.dumps(response_dict[2])
+
+
+@route("/db/api/forum/details/", method="GET")
+def detail_index():
+    related = request.GET.get("related")
+    forum = request.GET.get("forum")
+    if (forum):
+        result = detail_forum(related, forum)
+        print json.dumps(result)
+        return json.dumps(result)
+    else:
+        return response_dict[2]
+
+
+@route("/db/api/thread/subscribe/", method="POST")
+def thread_subscribe_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        thread_id = obj["thread"]
+        follower_email = obj["user"]
+        result = thread_subscribe(thread_id, follower_email)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+
+@route("/db/api/thread/unsubscribe/", method="POST")
+def thread_subscribe_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        thread_id = obj["thread"]
+        follower_email = obj["user"]
+        result = thread_unsubscribe(thread_id, follower_email)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+
+@route("/db/api/thread/remove/", method="POST")
+def thread_remove_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        thread_id = obj["thread"]
+        result = thread_remove(thread_id)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+@route("/db/api/thread/restore/", method="POST")
+def thread_restore_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        thread_id = obj["thread"]
+        result = thread_restore(thread_id)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+@route("/db/api/thread/close/", method="POST")
+def thread_close_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        thread_id = obj["thread"]
+        result = thread_close(thread_id)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+@route("/db/api/thread/open/", method="POST")
+def thread_open_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        thread_id = obj["thread"]
+        result = thread_open(thread_id)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+@route("/db/api/thread/update/", method="POST")
+def thread_update_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        thread_id = obj["thread"]
+        result = thread_open(thread_id)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+
 
 
 run(host='localhost', port=8080)
