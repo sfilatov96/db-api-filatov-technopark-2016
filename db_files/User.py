@@ -26,9 +26,13 @@ def create(username, about, name, email, is_anon):
         db.commit()
         db.close()
         return results
-    except MySQLdb.IntegrityError:
-        results = response_dict[5]
-        return results
+    except MySQLdb.IntegrityError as e:
+        if (e[0] == "1062"):
+            return response_dict[5]
+        elif (e[0] == "1452"):
+            return response_dict[1]
+        else:
+            return response_dict[4]
     except MySQLdb.Error:
         results = response_dict[4]
         return results
@@ -47,6 +51,8 @@ def detail(email):
             followers = cursor.fetchall()
             cursor.execute(""" SELECT * FROM User_followers WHERE Followers=%s""", email)
             following = cursor.fetchall()
+            cursor.execute("""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", db_id[3])
+            count_subscribe = cursor.fetchone()
             print str
             results = {
                 "code": 0,
@@ -58,7 +64,7 @@ def detail(email):
                     "id": str[0],
                     "isAnonymous": bool(str[5]),
                     "name": str[3],
-                    "subscriptions": [],
+                    "subscriptions": count_subscribe[0],
                     "username": str[1]
                 }
             }
@@ -66,9 +72,13 @@ def detail(email):
         db.commit()
         db.close()
         return results
-    except MySQLdb.IntegrityError:
-        results = response_dict[5]
-        return results
+    except MySQLdb.IntegrityError as e:
+        if (e[0] == "1062"):
+            return response_dict[5]
+        elif (e[0] == "1452"):
+            return response_dict[1]
+        else:
+            return response_dict[4]
 
 
 def follow(follower, followee):
@@ -85,6 +95,8 @@ def follow(follower, followee):
             followers = cursor.fetchall()
             cursor.execute(""" SELECT User FROM User_followers WHERE Followers=%s""", follower)
             following = cursor.fetchall()
+            cursor.execute("""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", followee)
+            count_subscribe = cursor.fetchone()
 
             print str
             results = {
@@ -97,7 +109,7 @@ def follow(follower, followee):
                     "id": str[0],
                     "isAnonymous": bool(str[5]),
                     "name": str[3],
-                    "subscriptions": [],
+                    "subscriptions": count_subscribe[0],
                     "username": str[1]
                 }
             }
@@ -108,9 +120,13 @@ def follow(follower, followee):
         else:
             return response_dict[1]
 
-    except MySQLdb.IntegrityError:
-        results = response_dict[5]
-        return results
+    except MySQLdb.IntegrityError as e:
+        if (e[0] == 1062):
+            return response_dict[5]
+        elif (e[0] == 1452):
+            return response_dict[1]
+        else:
+            return response_dict[4]
     except TypeError:
         results = response_dict[1]
         return results
@@ -129,6 +145,8 @@ def list_followers(email, order):
             followers = cursor.fetchall()
             cursor.execute(""" SELECT User FROM User_followers WHERE Followers=%s ORDER BY %s""", (email, order))
             following = cursor.fetchall()
+            cursor.execute("""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", email)
+            count_subscribe = cursor.fetchone()
             results = {
                 "code": 0,
                 "response": {
@@ -139,7 +157,7 @@ def list_followers(email, order):
                     "id": str[0],
                     "isAnonymous": bool(str[5]),
                     "name": str[3],
-                    "subscriptions": [],
+                    "subscriptions": count_subscribe[0],
                     "username": str[1]
                 }
             }
@@ -147,9 +165,13 @@ def list_followers(email, order):
         db.commit()
         db.close()
         return results
-    except MySQLdb.IntegrityError:
-        results = response_dict[5]
-        return results
+    except MySQLdb.IntegrityError as e:
+        if (e[0] == 1062):
+            return response_dict[5]
+        elif (e[0] == 1452):
+            return response_dict[1]
+        else:
+            return response_dict[4]
 
 
 def list_following(email, order, limit ,since_id):
@@ -167,6 +189,8 @@ def list_following(email, order, limit ,since_id):
             JOIN User u on f.User = u.email
             WHERE Followers=%s AND id >= %d  ORDER BY %s LIMIT %d """, (email, since_id, order, limit))
             following = cursor.fetchall()
+            cursor.execute("""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", email)
+            count_subscribe = cursor.fetchone()
             results = {
                 "code": 0,
                 "response": {
@@ -177,7 +201,7 @@ def list_following(email, order, limit ,since_id):
                     "id": str[0],
                     "isAnonymous": bool(str[5]),
                     "name": str[3],
-                    "subscriptions": [],
+                    "subscriptions": count_subscribe[0],
                     "username": str[1]
                 }
             }
@@ -185,9 +209,13 @@ def list_following(email, order, limit ,since_id):
         db.commit()
         db.close()
         return results
-    except MySQLdb.IntegrityError:
-        results = response_dict[5]
-        return results
+    except MySQLdb.IntegrityError as e:
+        if (e[0] == 1062):
+            return response_dict[5]
+        elif (e[0] == 1452):
+            return response_dict[1]
+        else:
+            return response_dict[4]
 
 
 

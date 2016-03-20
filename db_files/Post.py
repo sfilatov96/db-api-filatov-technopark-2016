@@ -32,5 +32,10 @@ def create_post(date, thread, message, user, forum, is_approved, is_highlighted,
         db.commit()
         db.close()
         return results
-    except MySQLdb.IntegrityError:
-        return response_dict[1]
+    except MySQLdb.IntegrityError as e:
+        if (e[0] == 1062):
+            return response_dict[5]
+        elif (e[0] == 1452):
+            return response_dict[1]
+        else:
+            return response_dict[4]

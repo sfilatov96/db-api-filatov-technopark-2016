@@ -80,42 +80,76 @@ def create_forum(name, short_name, user):
         db.commit()
         db.close()
         return results
-    except MySQLdb.IntegrityError:
-        results = response_dict[5]
-        return results
+    except MySQLdb.IntegrityError as e:
+        if (e[0] == 1062):
+            return response_dict[5]
+        elif (e[0] == 1452):
+            return response_dict[1]
+        else:
+            return response_dict[4]
     except MySQLdb.Error:
         results = response_dict[4]
         return results
 
-def detail_forum(related,forum):
+
+def detail_forum(related, forum):
     db = connect()
     cursor = db.cursor()
     try:
-        try:
-            cursor.execute("""SELECT * FROM Forum WHERE short_name=%s AND user=%s""", (forum,user))
-        except MySQLdb.Error:
-            return response_dict[1]
-
-        cursor.execute("""INSERT INTO Forum (name,short_name,user) VALUES (%s,%s,%s) """, (name, short_name, user))
-        cursor.execute(""" SELECT id FROM Forum WHERE name=%s """, name)
+        cursor.execute("""SELECT * FROM Forum WHERE short_name=%s """, forum)
         db_id = cursor.fetchone()
-        results = {
-            "code": 0,
-            "response": {
-                "id": db_id[0],
-                "name": name,
-                "short_name": short_name,
-                "user": user
+        cursor.execute("""SELECT * FROM User WHERE email=%s""", db_id[3])
+        user_id = cursor.fetchone()
+        cursor.execute(""" SELECT * FROM User_followers WHERE User=%s""", db_id[3])
+        followers = cursor.fetchall()
+        cursor.execute(""" SELECT * FROM User_followers WHERE Followers=%s""", db_id[3])
+        following = cursor.fetchall()
+        cursor.execute(""" SELECT thread_id FROM Thread_followers WHERE follower_email=%s""", db_id[3])
+        sub = cursor.fetchall()
+        if(related):
+            results = {
+                "code": 0,
+                "response": {
+                    "id": db_id[0],
+                    "name": db_id[1],
+                    "short_name": db_id[2],
+                    "user": {
+                        "about": user_id[2],
+                        "email": db_id[3],
+                        "followers": followers,
+                        "following": following,
+                        "id": user_id[0],
+                        "isAnonymous": user_id[5],
+                        "name": user_id[3],
+                        "subscriptions": sub,
+                        "username": user_id[1]
+                    }
+                }
             }
-        }
+        else:
+            results = {
+                "code": 0,
+                "response": {
+                    "id": db_id[0],
+                    "name": db_id[1],
+                    "short_name": db_id[2],
+                }
+            }
         cursor.close()
         db.commit()
         db.close()
         return results
-    except MySQLdb.IntegrityError:
-        results = response_dict[5]
-        return results
+    except MySQLdb.Error:
+        return response_dict[1]
+    except TypeError:
+        return response_dict[1]
+    except MySQLdb.IntegrityError as e:
+        if (e[0] == 1062):
+            return response_dict[5]
+        elif (e[0] == 1452):
+            return response_dict[1]
+        else:
+            return response_dict[4]
     except MySQLdb.Error:
         results = response_dict[4]
         return results
-
