@@ -27,6 +27,7 @@ def create(username, about, name, email, is_anon):
         db.close()
         return results
     except MySQLdb.IntegrityError as e:
+
         if (e[0] == 1062):
             return response_dict[5]
         elif (e[0] == 1452):
@@ -178,6 +179,7 @@ def list_followers(email, order):
             return response_dict[4]
 
 
+
 def list_following(email, order, limit, since_id):
     db = connect()
     cursor = db.cursor()
@@ -220,3 +222,4 @@ def list_following(email, order, limit, since_id):
             return response_dict[1]
         else:
             return response_dict[4]
+

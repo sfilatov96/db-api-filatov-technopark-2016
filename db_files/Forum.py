@@ -86,6 +86,7 @@ def create_forum(name, short_name, user):
             return response_dict[4]
 
 
+
 def detail_forum(related, forum):
     db = connect()
     cursor = db.cursor()

@@ -3,6 +3,7 @@ from response import response_dict
 import MySQLdb
 
 
+
 def create_post(date, thread, message, user, forum, is_approved, is_highlighted, is_spam, is_deleted, is_edited,
                 parent):
     db = connect()
@@ -13,6 +14,7 @@ def create_post(date, thread, message, user, forum, is_approved, is_highlighted,
          """, (date, thread, message, user, forum, is_approved, is_highlighted, is_spam, is_deleted, is_edited, parent))
         cursor.execute(""" SELECT * FROM Post WHERE forum=%s AND user=%s AND message=%s AND thread="%s" """,
                        (forum, user, message, thread))
+
         db_id = cursor.fetchone()
         results = {
             "code": 0,

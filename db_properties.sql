@@ -35,7 +35,7 @@ CREATE TABLE `Post` (
   `dislikes` int(11) NOT NULL DEFAULT '0',
   `path` varchar(255) NOT NULL DEFAULT '0',
   `childs_count` int(11) NOT NULL DEFAULT '0',
-  `points` int(11) NOT NULL DEFAULT 0,
+  `points` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `forum` (`forum`),
   KEY `thread` (`thread`),

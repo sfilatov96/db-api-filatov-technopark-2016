@@ -50,17 +50,27 @@ def create_index():
         return json.dumps(response_dict[2])
 
 
+<<<<<<< HEAD
 @route("/db/api/user/details/", method="GET")
 def detail_index():
     email = request.GET.get('user');
     print email
+=======
+@route("/db/api/user/detail/", method="GET")
+def detail_index():
+    email = request.GET.get("email");
+>>>>>>> 378490ba86c17fc322327743672cccb53bb85b42
     if (email):
         result = detail(email)
         print json.dumps(result)
         return json.dumps(result)
     else:
+<<<<<<< HEAD
         print "exit"
         return json.dumps(response_dict[2])
+=======
+        return response_dict[2]
+>>>>>>> 378490ba86c17fc322327743672cccb53bb85b42
 
 
 @route("/db/api/user/follow/", method="POST")
@@ -141,16 +151,26 @@ def create_forum_index():
         request_data = request.json
         obj = json.loads(json.dumps(request_data))
         name = obj["name"]
+<<<<<<< HEAD
         print name
+=======
+>>>>>>> 378490ba86c17fc322327743672cccb53bb85b42
         short_name = obj["short_name"]
         user = obj["user"]
         result = create_forum(name, short_name, user)
         print json.dumps(result)
         return json.dumps(result)
+<<<<<<< HEAD
     except TypeError:
         return json.dumps(response_dict[4])
     except SyntaxError:
         return json.dumps(response_dict[4])
+=======
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+>>>>>>> 378490ba86c17fc322327743672cccb53bb85b42
     except NameError:
         return json.dumps(response_dict[2])
 
@@ -173,6 +193,7 @@ def create_post_index():
         parent = obj["parent"]
         result = create_post(date, thread, message, user, forum, is_approved, is_highlighted, is_spam,
                              is_deleted, is_edited, parent)
+
         print json.dumps(result)
         return json.dumps(result)
     except ValueError:
@@ -185,6 +206,7 @@ def create_post_index():
 
 @route("/db/api/forum/details/", method="GET")
 def forum_detail_index():
+
     related = request.GET.get("related")
     forum = request.GET.get("forum")
     if (forum):
@@ -193,6 +215,7 @@ def forum_detail_index():
         return json.dumps(result)
     else:
         return response_dict[2]
+
 
 
 @route("/db/api/thread/details/", method="GET")
@@ -206,6 +229,7 @@ def thread_detail_index():
         return json.dumps(result)
     else:
         return response_dict[3]
+
 
 
 @route("/db/api/thread/subscribe/", method="POST")
@@ -322,6 +346,7 @@ def thread_update_index():
         message = obj["message"]
 
         result = update_thread(thread_id, slug, message)
+
         print json.dumps(result)
         return json.dumps(result)
     except ValueError:
@@ -330,6 +355,7 @@ def thread_update_index():
         return json.dumps(response_dict[2])
     except NameError:
         return json.dumps(response_dict[2])
+
 
 @route("/db/api/post/details/", method="GET")
 def post_detail_index():
@@ -356,5 +382,6 @@ def post_list_index():
         return json.dumps(result)
     else:
         return response_dict[2]
+
 
 run(host='localhost', port=8080)

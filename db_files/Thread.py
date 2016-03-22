@@ -101,6 +101,7 @@ def thread_remove(thread_id):
         dels = cursor.fetchone()
         if (dels):
             cursor.execute("""UPDATE  Thread SET isDeleted=1  WHERE id=%s """, thread_id)
+
             results = {
                 "code": 0,
                 "response": {
@@ -124,7 +125,9 @@ def thread_restore(thread_id):
         cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, thread_id)
         dels = cursor.fetchone()
         if (dels):
+
             cursor.execute("""UPDATE  Thread SET isDeleted=0  WHERE id=%s """, thread_id)
+
             results = {
                 "code": 0,
                 "response": {
@@ -149,6 +152,7 @@ def thread_close(thread_id):
         dels = cursor.fetchone()
         if (dels):
             cursor.execute("""UPDATE  Thread SET isClosed=1  WHERE id=%s """, thread_id)
+
             results = {
                 "code": 0,
                 "response": {
@@ -173,6 +177,7 @@ def thread_open(thread_id):
         dels = cursor.fetchone()
         if (dels):
             cursor.execute("""UPDATE  Thread SET isClosed=0  WHERE id=%s """, thread_id)
+
             results = {
                 "code": 0,
                 "response": {
@@ -187,7 +192,6 @@ def thread_open(thread_id):
             return response_dict[1]
     except MySQLdb.IntegrityError as e:
         return response_dict[4]
-
 
 def detail_thread(related, thread):
     db = connect()
@@ -362,3 +366,4 @@ def update_thread(thread_id, slug, message):
             return response_dict[1]
         else:
             return response_dict[4]
+
