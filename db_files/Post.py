@@ -3,7 +3,6 @@ from response import response_dict
 import MySQLdb
 
 
-
 def create_post(date, thread, message, user, forum, is_approved, is_highlighted, is_spam, is_deleted, is_edited,
                 parent):
     db = connect()
@@ -33,14 +32,19 @@ def create_post(date, thread, message, user, forum, is_approved, is_highlighted,
                 "user": user
             }
         }
+        cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s and isDeleted=0""", thread)
+        posts_count = cursor.fetchone()
+        cursor.execute(""" UPDATE Thread SET posts=%s  WHERE id=%s""", (str(posts_count[0]), thread))
+        print posts_count[0]
         cursor.close()
         db.commit()
         db.close()
+
         return results
     except MySQLdb.IntegrityError as e:
-        if (e[0] == 1062):
+        if e[0] == 1062:
             return response_dict[5]
-        elif (e[0] == 1452):
+        elif e[0] == 1452:
             return response_dict[1]
         else:
             return response_dict[4]
@@ -64,24 +68,24 @@ def detail_post(related, post):
         forum = cursor.fetchone()
         cursor.execute(""" SELECT * FROM Thread WHERE id=%s""", db_id[2])
         thread = cursor.fetchone()
-        cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s""", thread[0])
+        cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s and isDeleted=0""", thread[0])
         posts = cursor.fetchone()
         user_buf = db_id[4]
-        if ("user" in related):
+        if "user" in related:
             user_buf = {
                 "about": user_id[2],
                 "email": db_id[4],
                 "followers": followers,
                 "following": following,
                 "id": user_id[0],
-                "isAnonymous": user_id[5],
+                "isAnonymous": bool(user_id[5]),
                 "name": user_id[3],
                 "subscriptions": sub,
                 "username": user_id[1]
             }
 
         forum_buf = db_id[5]
-        if ("forum" in related):
+        if "forum" in related:
             forum_buf = {
                 "id": forum[0],
                 "name": forum[1],
@@ -90,14 +94,14 @@ def detail_post(related, post):
             }
 
         thread_buf = db_id[2]
-        if ("thread" in related):
+        if "thread" in related:
             thread_buf = {
                 "date": thread[5].strftime("%Y-%m-%d %H:%M:%S"),
                 "dislikes": thread[10],
                 "forum": thread[1],
                 "id": thread[0],
-                "isClosed": thread[3],
-                "isDeleted": thread[8],
+                "isClosed": bool(thread[3]),
+                "isDeleted": bool(thread[8]),
                 "likes": thread[9],
                 "message": thread[6],
                 "points": thread[12],
@@ -114,15 +118,15 @@ def detail_post(related, post):
                 "dislikes": db_id[13],
                 "forum": forum_buf,
                 "id": db_id[0],
-                "isApproved": db_id[7],
-                "isDeleted": db_id[11],
-                "isEdited": db_id[9],
-                "isHighlighted": db_id[8],
-                "isSpam": db_id[10],
+                "isApproved": bool(db_id[7]),
+                "isDeleted": bool(db_id[11]),
+                "isEdited": bool(db_id[9]),
+                "isHighlighted": bool(db_id[8]),
+                "isSpam": bool(db_id[10]),
                 "likes": db_id[12],
                 "message": db_id[3],
                 "parent": db_id[6],
-                "points": int(db_id[14]),
+                "points": int(db_id[16]),
                 "thread": thread_buf,
                 "user": user_buf
             }
@@ -136,19 +140,197 @@ def detail_post(related, post):
         return response_dict[1]
 
     except MySQLdb.IntegrityError as e:
-        if (e[0] == 1062):
+        if e[0] == 1062:
             return response_dict[5]
-        elif (e[0] == 1452):
+        elif e[0] == 1452:
             return response_dict[1]
         else:
             return response_dict[4]
+
 
 def list_post(since, order, limit, forum, thread):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Post WHERE thread=%s or forum=%s """, (thread, forum))
-        db_id = cursor.fetchall()
+        if thread is None and forum is None:
+            return response_dict[3]
+        if forum is not None:
+            query = """SELECT * FROM Post WHERE forum = %s """
+            query_params = (forum,)
+        else:
+            query = """SELECT * FROM Post WHERE thread = %s """
+            query_params = (thread,)
+
+        if since is not None:
+            query += "AND date >= %s "
+            query_params += (since,)
+            query += "ORDER BY date " + order + " "
+
+        if limit is not None:
+            query += "LIMIT %s;"
+            query_params += (int(limit),)
+
+        cursor.execute(query, query_params)
+        array = []
+        for db_id in cursor.fetchall():
+            maps = {
+                "date": db_id[1].strftime("%Y-%m-%d %H:%M:%S"),
+                "dislikes": db_id[13],
+                "forum": db_id[5],
+                "id": db_id[0],
+                "isApproved": bool(db_id[7]),
+                "isDeleted": bool(db_id[11]),
+                "isEdited": bool(db_id[9]),
+                "isHighlighted": bool(db_id[8]),
+                "isSpam": bool(db_id[10]),
+                "likes": db_id[12],
+                "message": db_id[3],
+                "parent": db_id[6],
+                "points": int(db_id[16]),
+                "thread": db_id[2],
+                "user": db_id[4]
+            }
+            array.append(maps)
+        print array
+        result = {
+            "code": 0,
+            "response": array
+        }
+        return result
+
     except MySQLdb.Error:
         return response_dict[4]
 
+
+def post_remove(post_id):
+    db = connect()
+    cursor = db.cursor()
+    try:
+        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+        del_sel = cursor.fetchone()
+        if del_sel:
+            cursor.execute("""UPDATE  Post SET isDeleted=1  WHERE id=%s """, post_id)
+            results = {
+                "code": 0,
+                "response": {
+                    "post": post_id,
+                }
+            }
+            cursor.close()
+            db.commit()
+            db.close()
+            return results
+        else:
+            return response_dict[1]
+    except MySQLdb.IntegrityError:
+        return response_dict[4]
+
+
+def post_restore(post_id):
+    db = connect()
+    cursor = db.cursor()
+    try:
+        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+        del_sel = cursor.fetchone()
+        if del_sel:
+            cursor.execute("""UPDATE  Post SET isDeleted=0  WHERE id=%s """, post_id)
+            results = {
+                "code": 0,
+                "response": {
+                    "post": post_id,
+                }
+            }
+            cursor.close()
+            db.commit()
+            db.close()
+            return results
+        else:
+            return response_dict[1]
+    except MySQLdb.IntegrityError:
+        return response_dict[4]
+
+
+def post_update(post_id, message):
+    db = connect()
+    cursor = db.cursor()
+    try:
+        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+        db_id = cursor.fetchone()
+        if db_id:
+            cursor.execute("""UPDATE  Post SET message=%s  WHERE id=%s """, (message, post_id))
+
+            results = {
+                "code": 0,
+                "response": {
+                    "date": db_id[1].strftime("%Y-%m-%d %H:%M:%S"),
+                    "dislikes": db_id[13],
+                    "forum": db_id[5],
+                    "id": db_id[0],
+                    "isApproved": bool(db_id[7]),
+                    "isDeleted": bool(db_id[11]),
+                    "isEdited": bool(db_id[9]),
+                    "isHighlighted": bool(db_id[8]),
+                    "isSpam": bool(db_id[10]),
+                    "likes": db_id[12],
+                    "message": message,
+                    "parent": db_id[6],
+                    "points": int(db_id[16]),
+                    "thread": db_id[5],
+                    "user": db_id[4]
+                }
+            }
+            cursor.close()
+            db.commit()
+            db.close()
+            return results
+        else:
+            return response_dict[1]
+    except MySQLdb.IntegrityError:
+        return response_dict[4]
+
+
+def post_vote(post_id, vote):
+    db = connect()
+    cursor = db.cursor()
+    try:
+        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+        is_id = cursor.fetchone()
+        if is_id:
+            print vote
+            if vote == 1:
+                cursor.execute("""UPDATE  Post SET likes=likes+1, points=points+1 WHERE id=%s """, post_id)
+            elif vote == -1:
+                cursor.execute("""UPDATE  Post SET dislikes=dislikes+1, points=points-1 WHERE id=%s """, post_id)
+            else:
+                return response_dict[3]
+
+            cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+            db_id = cursor.fetchone()
+            results = {
+                "code": 0,
+                "response": {
+                    "date": db_id[1].strftime("%Y-%m-%d %H:%M:%S"),
+                    "dislikes": db_id[13],
+                    "forum": db_id[5],
+                    "id": db_id[0],
+                    "isApproved": bool(db_id[7]),
+                    "isDeleted": bool(db_id[11]),
+                    "isEdited": bool(db_id[9]),
+                    "isHighlighted": bool(db_id[8]),
+                    "isSpam": bool(db_id[10]),
+                    "likes": db_id[12],
+                    "message": db_id[3],
+                    "parent": db_id[6],
+                    "points": db_id[14],
+                    "thread": db_id[5],
+                    "user": db_id[4]
+                }
+            }
+            cursor.close()
+            db.commit()
+            db.close()
+            return results
+        else:
+            return response_dict[1]
+    except MySQLdb.IntegrityError:
+        return response_dict[4]

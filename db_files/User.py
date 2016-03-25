@@ -100,7 +100,7 @@ def follow(follower, followee):
             followers = cursor.fetchall()
             cursor.execute(""" SELECT User FROM User_followers WHERE Followers=%s""", follower)
             following = cursor.fetchall()
-            cursor.execute("""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", followee)
+            cursor.execute(""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", followee)
             count_subscribe = cursor.fetchone()
 
             print str
@@ -150,7 +150,7 @@ def list_followers(email, order):
             followers = cursor.fetchall()
             cursor.execute(""" SELECT User FROM User_followers WHERE Followers=%s ORDER BY %s""", (email, order))
             following = cursor.fetchall()
-            cursor.execute("""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", email)
+            cursor.execute(""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", email)
             count_subscribe = cursor.fetchone()
             results = {
                 "code": 0,
@@ -222,4 +222,6 @@ def list_following(email, order, limit, since_id):
             return response_dict[1]
         else:
             return response_dict[4]
+
+
 

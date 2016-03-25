@@ -78,13 +78,12 @@ def create_forum(name, short_name, user):
         db.close()
         return results
     except MySQLdb.IntegrityError as e:
-        if (e[0] == 1062):
+        if e[0] == 1062:
             return response_dict[5]
-        elif (e[0] == 1452):
+        elif e[0] == 1452:
             return response_dict[1]
         else:
             return response_dict[4]
-
 
 
 def detail_forum(related, forum):
@@ -101,7 +100,7 @@ def detail_forum(related, forum):
         following = cursor.fetchall()
         cursor.execute(""" SELECT thread_id FROM Thread_followers WHERE follower_email=%s""", db_id[3])
         sub = cursor.fetchall()
-        if(related):
+        if related:
             results = {
                 "code": 0,
                 "response": {
@@ -139,12 +138,9 @@ def detail_forum(related, forum):
     except TypeError:
         return response_dict[1]
     except MySQLdb.IntegrityError as e:
-        if (e[0] == 1062):
+        if e[0] == 1062:
             return response_dict[5]
-        elif (e[0] == 1452):
+        elif e[0] == 1452:
             return response_dict[1]
         else:
             return response_dict[4]
-    except MySQLdb.Error:
-        results = response_dict[4]
-        return results
