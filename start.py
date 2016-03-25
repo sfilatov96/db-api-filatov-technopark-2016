@@ -50,27 +50,17 @@ def create_index():
         return json.dumps(response_dict[2])
 
 
-<<<<<<< HEAD
 @route("/db/api/user/details/", method="GET")
 def detail_index():
-    email = request.GET.get('user');
+    email = request.GET.get('user')
     print email
-=======
-@route("/db/api/user/detail/", method="GET")
-def detail_index():
-    email = request.GET.get("email");
->>>>>>> 378490ba86c17fc322327743672cccb53bb85b42
-    if (email):
+    if email:
         result = detail(email)
         print json.dumps(result)
         return json.dumps(result)
     else:
-<<<<<<< HEAD
         print "exit"
         return json.dumps(response_dict[2])
-=======
-        return response_dict[2]
->>>>>>> 378490ba86c17fc322327743672cccb53bb85b42
 
 
 @route("/db/api/user/follow/", method="POST")
@@ -93,11 +83,11 @@ def create_index():
 
 @route("/db/api/user/listFollowers/", method="GET")
 def list_followers_index():
-    email = request.GET.get("user");
+    email = request.GET.get("user")
     order = request.GET.get("order")
     print email
     print order
-    if (email and (order == "asc" or order == "desc")):
+    if email and (order == "asc" or order == "desc"):
         result = list_followers(email, order)
         print json.dumps(result)
         return json.dumps(result)
@@ -110,10 +100,10 @@ def list_following_index():
     email = request.GET.get("user")
     order = request.GET.get("order")
     since_id = request.GET.get("since_id")
-    limit = request.GET.get("limit")
+    limit = request.GET.get("limit"),
     print email
     print order
-    if (email and since_id and limit and (order == "asc" or order == "desc")):
+    if email and since_id and limit and (order == "asc" or order == "desc"):
         result = list_following(email, order, since_id)
         print json.dumps(result)
         return json.dumps(result)
@@ -151,26 +141,16 @@ def create_forum_index():
         request_data = request.json
         obj = json.loads(json.dumps(request_data))
         name = obj["name"]
-<<<<<<< HEAD
         print name
-=======
->>>>>>> 378490ba86c17fc322327743672cccb53bb85b42
         short_name = obj["short_name"]
         user = obj["user"]
         result = create_forum(name, short_name, user)
         print json.dumps(result)
         return json.dumps(result)
-<<<<<<< HEAD
     except TypeError:
         return json.dumps(response_dict[4])
     except SyntaxError:
         return json.dumps(response_dict[4])
-=======
-    except ValueError:
-        return json.dumps(response_dict[2])
-    except SyntaxError:
-        return json.dumps(response_dict[2])
->>>>>>> 378490ba86c17fc322327743672cccb53bb85b42
     except NameError:
         return json.dumps(response_dict[2])
 
@@ -206,10 +186,9 @@ def create_post_index():
 
 @route("/db/api/forum/details/", method="GET")
 def forum_detail_index():
-
     related = request.GET.get("related")
     forum = request.GET.get("forum")
-    if (forum):
+    if forum:
         result = detail_forum(related, forum)
         print json.dumps(result)
         return json.dumps(result)
@@ -217,19 +196,17 @@ def forum_detail_index():
         return response_dict[2]
 
 
-
 @route("/db/api/thread/details/", method="GET")
 def thread_detail_index():
     related = request.GET.getlist("related")
     print related
     thread = request.GET.get("thread")
-    if (thread and "thread" not in related):
+    if thread and "thread" not in related:
         result = detail_thread(related, thread)
         print json.dumps(result)
         return json.dumps(result)
     else:
         return response_dict[3]
-
 
 
 @route("/db/api/thread/subscribe/", method="POST")
@@ -362,12 +339,13 @@ def post_detail_index():
     related = request.GET.getlist("related")
     print related
     post = request.GET.get("post")
-    if (post):
+    if post:
         result = detail_post(related, post)
         print json.dumps(result)
         return json.dumps(result)
     else:
         return response_dict[2]
+
 
 @route("/db/api/post/list/", method="GET")
 def post_list_index():
@@ -376,12 +354,132 @@ def post_list_index():
     limit = request.GET.get("limit")
     forum = request.GET.get("forum")
     thread = request.GET.get("thread")
-    if (forum or thread):
+    if forum or thread:
         result = list_post(since, order, limit, forum, thread)
         print json.dumps(result)
         return json.dumps(result)
     else:
         return response_dict[2]
+
+
+@route("/db/api/post/remove/", method="POST")
+def post_remove_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        post_id = obj["post"]
+        result = post_remove(post_id)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+
+@route("/db/api/post/restore/", method="POST")
+def post_restore_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        post_id = obj["post"]
+        result = post_restore(post_id)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+
+@route("/db/api/post/update/", method="POST")
+def post_update_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        post_id = obj["post"]
+        message = obj["message"]
+        result = post_update(post_id, message)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+
+@route("/db/api/post/vote/", method="POST")
+def post_vote_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        post_id = obj["post"]
+        vote = obj["vote"]
+        result = post_vote(post_id, vote)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+
+@route("/db/api/thread/list/", method="GET")
+def post_list_index():
+    since = request.GET.get("since")
+    order = request.GET.get("order")
+    limit = request.GET.get("limit")
+    forum = request.GET.get("forum")
+    user = request.GET.get("user")
+    if forum or user:
+        result = list_thread(since, order, limit, forum, user)
+        print json.dumps(result)
+        return json.dumps(result)
+    else:
+        return response_dict[2]
+
+@route("/db/api/user/updateProfile/", method="POST")
+def profile_update_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        about = obj["about"]
+        user = obj["user"]
+        name = obj["name"]
+        result = profile_update(about, user, name)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+@route("/db/api/thread/vote/", method="POST")
+def thread_vote_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        thread = obj["thread"]
+        vote = obj["vote"]
+        result = thread_vote(thread, vote)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
 
 
 run(host='localhost', port=8080)
