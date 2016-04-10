@@ -100,7 +100,8 @@ def thread_remove(thread_id):
         cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, thread_id)
         dels = cursor.fetchone()
         if dels:
-            cursor.execute("""UPDATE  Thread SET isDeleted=1  WHERE id=%s """, thread_id)
+            cursor.execute("""UPDATE Post SET isDeleted=1 WHERE thread=%s""", thread_id)
+            cursor.execute("""UPDATE Thread SET isDeleted=1  WHERE id=%s """, thread_id)
 
             results = {
                 "code": 0,
@@ -125,7 +126,7 @@ def thread_restore(thread_id):
         cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, thread_id)
         dels = cursor.fetchone()
         if dels:
-
+            cursor.execute("""UPDATE Post SET isDeleted=0 WHERE thread=%s""", thread_id)
             cursor.execute("""UPDATE  Thread SET isDeleted=0  WHERE id=%s """, thread_id)
 
             results = {
@@ -235,22 +236,19 @@ def detail_thread(related, thread):
                 "user": forum[3]
             }
         results = {
-            "code": 0,
-            "response": {
-                "date": db_id[5].strftime("%Y-%m-%d %H:%M:%S"),
-                "dislikes": db_id[10],
-                "forum": forum_buf,
-                "id": db_id[0],
-                "isClosed": bool(db_id[3]),
-                "isDeleted": bool(db_id[8]),
-                "likes": db_id[9],
-                "message": db_id[6],
-                "points": db_id[12],
-                "posts": posts_count[0],
-                "slug": db_id[7],
-                "title": db_id[2],
-                "user": user_buf
-            }
+            "date": db_id[5].strftime("%Y-%m-%d %H:%M:%S"),
+            "dislikes": db_id[10],
+            "forum": forum_buf,
+            "id": db_id[0],
+            "isClosed": bool(db_id[3]),
+            "isDeleted": bool(db_id[8]),
+            "likes": db_id[9],
+            "message": db_id[6],
+            "points": db_id[12],
+            "posts": posts_count[0],
+            "slug": db_id[7],
+            "title": db_id[2],
+            "user": user_buf
         }
         cursor.close()
         db.commit()
@@ -367,7 +365,7 @@ def thread_vote(thread, vote):
             if vote == 1:
                 cursor.execute("""UPDATE Thread SET likes=likes+1, points=points+1 WHERE id=%s """, thread)
             elif vote == -1:
-                cursor.execute("""UPDATE  Thread SET dislikes=dislikes+1, points=points-1 WHERE id=%s """, thread)
+                cursor.execute("""UPDATE Thread SET dislikes=dislikes+1, points=points-1 WHERE id=%s """, thread)
             else:
                 return response_dict[3]
 
@@ -398,6 +396,60 @@ def thread_vote(thread, vote):
         else:
             return response_dict[1]
     except MySQLdb.IntegrityError:
+        return response_dict[4]
+
+def thread_post_list(since, order, limit, thread, sort):
+    db = connect()
+    cursor = db.cursor()
+    try:
+        if thread is None:
+            return response_dict[3]
+
+        query = """SELECT * FROM Post WHERE thread = %s """
+        query_params = (thread,)
+
+        if since is not None:
+            query += "AND date >= %s "
+            query_params += (since,)
+            query += "ORDER BY date " + order + " "
+
+        if limit is not None:
+            query += "LIMIT %s;"
+            query_params += (int(limit),)
+            
+        if sort is not None:
+            query += "LIMIT %s;"
+            query_params += (int(limit),)
+
+        cursor.execute(query, query_params)
+        array = []
+        for db_id in cursor.fetchall():
+            maps = {
+                "date": db_id[1].strftime("%Y-%m-%d %H:%M:%S"),
+                "dislikes": db_id[13],
+                "forum": db_id[5],
+                "id": db_id[0],
+                "isApproved": bool(db_id[7]),
+                "isDeleted": bool(db_id[11]),
+                "isEdited": bool(db_id[9]),
+                "isHighlighted": bool(db_id[8]),
+                "isSpam": bool(db_id[10]),
+                "likes": db_id[12],
+                "message": db_id[3],
+                "parent": db_id[6],
+                "points": int(db_id[16]),
+                "thread": db_id[2],
+                "user": db_id[4]
+            }
+            array.append(maps)
+        print array
+        result = {
+            "code": 0,
+            "response": array
+        }
+        return result
+
+    except MySQLdb.Error:
         return response_dict[4]
 
 

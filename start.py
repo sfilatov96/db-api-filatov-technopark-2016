@@ -57,14 +57,13 @@ def detail_index():
     if email:
         result = detail(email)
         print json.dumps(result)
-        return json.dumps(result)
+        return json.dumps({"code": 0, "response": result})
     else:
-        print "exit"
         return json.dumps(response_dict[2])
 
 
 @route("/db/api/user/follow/", method="POST")
-def create_index():
+def user_follow_index():
     try:
         request_data = request.json
         obj = json.loads(json.dumps(request_data))
@@ -81,14 +80,35 @@ def create_index():
         return json.dumps(response_dict[2])
 
 
+@route("/db/api/user/unfollow/", method="POST")
+def user_unfollow_index():
+    try:
+        request_data = request.json
+        obj = json.loads(json.dumps(request_data))
+        follower = obj["follower"]
+        followee = obj["followee"]
+        result = unfollow(followee, follower)
+        print json.dumps(result)
+        return json.dumps(result)
+    except ValueError:
+        return json.dumps(response_dict[2])
+    except SyntaxError:
+        return json.dumps(response_dict[2])
+    except NameError:
+        return json.dumps(response_dict[2])
+
+
 @route("/db/api/user/listFollowers/", method="GET")
 def list_followers_index():
-    email = request.GET.get("user")
-    order = request.GET.get("order")
+    email = request.GET.get('user')
+    order = request.GET.get('order', 'desc')
+    since_id = request.GET.get('since_id', '1')
+    limit = request.GET.get('limit')
     print email
     print order
-    if email and (order == "asc" or order == "desc"):
-        result = list_followers(email, order)
+    if email:
+        result = list_followers(email, order, limit, since_id)
+        print result
         print json.dumps(result)
         return json.dumps(result)
     else:
@@ -97,14 +117,12 @@ def list_followers_index():
 
 @route("/db/api/user/listFollowing/", method="GET")
 def list_following_index():
-    email = request.GET.get("user")
-    order = request.GET.get("order")
-    since_id = request.GET.get("since_id")
-    limit = request.GET.get("limit"),
-    print email
-    print order
-    if email and since_id and limit and (order == "asc" or order == "desc"):
-        result = list_following(email, order, since_id)
+    email = request.GET.get('user')
+    order = request.GET.get('order', 'desc')
+    since_id = request.GET.get('since_id', '1')
+    limit = request.GET.get('limit')
+    if email:
+        result = list_following(email, order, limit, since_id)
         print json.dumps(result)
         return json.dumps(result)
     else:
@@ -191,7 +209,7 @@ def forum_detail_index():
     if forum:
         result = detail_forum(related, forum)
         print json.dumps(result)
-        return json.dumps(result)
+        return json.dumps({"code": 0, "response": result})
     else:
         return response_dict[2]
 
@@ -204,7 +222,7 @@ def thread_detail_index():
     if thread and "thread" not in related:
         result = detail_thread(related, thread)
         print json.dumps(result)
-        return json.dumps(result)
+        return json.dumps({"code": 0, "response": result})
     else:
         return response_dict[3]
 
@@ -250,7 +268,7 @@ def thread_remove_index():
     try:
         request_data = request.json
         obj = json.loads(json.dumps(request_data))
-        thread_id = obj["thread"]
+        thread_id = obj['thread']
         result = thread_remove(thread_id)
         print json.dumps(result)
         return json.dumps(result)
@@ -446,6 +464,7 @@ def post_list_index():
     else:
         return response_dict[2]
 
+
 @route("/db/api/user/updateProfile/", method="POST")
 def profile_update_index():
     try:
@@ -464,6 +483,7 @@ def profile_update_index():
     except NameError:
         return json.dumps(response_dict[2])
 
+
 @route("/db/api/thread/vote/", method="POST")
 def thread_vote_index():
     try:
@@ -480,6 +500,78 @@ def thread_vote_index():
         return json.dumps(response_dict[2])
     except NameError:
         return json.dumps(response_dict[2])
+
+
+@route("/db/api/forum/listPosts/", method="GET")
+def forum_post_list_index():
+    related = request.GET.getlist("related")
+    forum = request.GET.get("forum")
+    order = request.GET.get("order")
+    since = request.GET.get("since")
+    limit = request.GET.get("limit")
+    if forum:
+        result = post_list_forum(related, forum, order, since, limit)
+        print json.dumps(result)
+        return json.dumps(result)
+    else:
+        return response_dict[2]
+
+
+@route("/db/api/thread/listPosts/", method="GET")
+def post_list_index():
+    since = request.GET.get("since")
+    order = request.GET.get("order")
+    limit = request.GET.get("limit")
+    thread = request.GET.get("thread")
+    sort = request.GET.get("sort")
+    if thread:
+        result = thread_post_list(since, order, limit, thread, sort)
+        print json.dumps(result)
+        return json.dumps(result)
+    else:
+        return response_dict[2]
+
+
+@route("/db/api/forum/listThreads/", method="GET")
+def list_thread_forum_index():
+    since = request.GET.get("since")
+    order = request.GET.get("order")
+    limit = request.GET.get("limit")
+    forum = request.GET.get("forum")
+    related = request.GET.getlist("related")
+    if forum:
+        result = list_thread_forum(since, order, limit, forum, related)
+        print json.dumps(result)
+        return json.dumps(result)
+    else:
+        return response_dict[2]
+
+
+@route("/db/api/forum/listUsers/", method="GET")
+def list_user_forum_index():
+    since_id = request.GET.get("since_id")
+    order = request.GET.get("order", 'DESC')
+    limit = request.GET.get("limit")
+    forum = request.GET.get("forum")
+    if forum:
+        result = list_user_forum(since_id, order, limit, forum)
+        print json.dumps(result)
+        return json.dumps(result)
+    else:
+        return response_dict[2]
+
+@route("/db/api/user/listPosts/", method="GET")
+def post_list_index():
+    since = request.GET.get("since")
+    order = request.GET.get("order")
+    limit = request.GET.get("limit")
+    user = request.GET.get("user")
+    if user:
+        result = user_post_list(user, order, since, limit)
+        print json.dumps(result)
+        return json.dumps(result)
+    else:
+        return response_dict[2]
 
 
 run(host='localhost', port=8080)
