@@ -400,54 +400,80 @@ def thread_vote(thread, vote):
 
 def thread_post_list(since, order, limit, thread, sort):
     db = connect()
-    cursor = db.cursor()
+    cursor = db.cursor(MySQLdb.cursors.DictCursor)
     try:
         if thread is None:
             return response_dict[3]
+        if sort is "flat":
+            query = """SELECT * FROM Post WHERE thread = %s """
+            query_params = (thread,)
 
-        query = """SELECT * FROM Post WHERE thread = %s """
-        query_params = (thread,)
+            if since is not None:
+                query += "AND date >= %s "
+                query_params += (since,)
 
-        if since is not None:
-            query += "AND date >= %s "
-            query_params += (since,)
             query += "ORDER BY date " + order + " "
 
-        if limit is not None:
-            query += "LIMIT %s;"
-            query_params += (int(limit),)
-            
-        if sort is not None:
-            query += "LIMIT %s;"
-            query_params += (int(limit),)
+            if limit is not None:
+                query += "LIMIT %s;"
+                query_params += (int(limit),)
 
-        cursor.execute(query, query_params)
-        array = []
-        for db_id in cursor.fetchall():
-            maps = {
-                "date": db_id[1].strftime("%Y-%m-%d %H:%M:%S"),
-                "dislikes": db_id[13],
-                "forum": db_id[5],
-                "id": db_id[0],
-                "isApproved": bool(db_id[7]),
-                "isDeleted": bool(db_id[11]),
-                "isEdited": bool(db_id[9]),
-                "isHighlighted": bool(db_id[8]),
-                "isSpam": bool(db_id[10]),
-                "likes": db_id[12],
-                "message": db_id[3],
-                "parent": db_id[6],
-                "points": int(db_id[16]),
-                "thread": db_id[2],
-                "user": db_id[4]
+
+            cursor.execute(query, query_params)
+            array = [i for i in cursor.fetchall()]
+            for post in array:
+                post.update({'date': str(post['date'])})
+
+            result = {
+                "code": 0,
+                "response": array
             }
-            array.append(maps)
-        print array
-        result = {
-            "code": 0,
-            "response": array
-        }
-        return result
+            return result
+        else:
+            subquery = """SELECT path
+                    FROM Post
+                    WHERE isRoot = 0 AND thread = %s """
+            query_params = (thread,)
+
+            if since is not None:
+                subquery += " AND date >= %s "
+                query_params += (since,)
+
+            if limit is not None:
+                subquery += " ORDER BY path " + order + " LIMIT %s "
+                query_params += (int(limit),)
+
+            query = """SELECT *
+                    FROM ( """ + subquery + """ ) as root
+                    INNER JOIN Post as child
+                    ON child.path LIKE CONCAT(root.path,'%%') """
+
+            if since is not None:
+                query += " WHERE child.date >= %s "
+                query_params += (since,)
+
+            query += " ORDER BY root.path " + order + ", child.path ASC "
+
+            if sort == 'tree' and limit is not None:
+                query += " LIMIT %s;"
+                query_params += (int(limit),)
+
+            try:
+                cursor.execute(query, query_params)
+
+            except MySQLdb.Error as e:
+                print e
+                return response_dict[3]
+            
+            array = [i for i in cursor.fetchall()]
+            for post in array:
+                post.update({'date': str(post['date'])})
+
+            result = {
+                "code": 0,
+                "response": array
+            }
+            return result
 
     except MySQLdb.Error:
         return response_dict[4]

@@ -1,6 +1,7 @@
 from mysql_connect import connect
 from response import response_dict
 import MySQLdb
+from numconv import int2str
 
 
 def create_post(date, thread, message, user, forum, is_approved, is_highlighted, is_spam, is_deleted, is_edited,
@@ -8,12 +9,21 @@ def create_post(date, thread, message, user, forum, is_approved, is_highlighted,
     db = connect()
     cursor = db.cursor()
     try:
+
+        if parent is None:
+            is_root = 0
+            path = ' '
+        else:
+            is_root = 1
+            cursor.execute("""SELECT path FROM Post WHERE id = %s""", (parent,))
+            path = cursor.fetchone()[0]
+
         cursor.execute("""INSERT INTO Post (date, thread, message, user, forum, isApproved, isHighlighted,
-         isSpam, isDeleted, isEdited,parent) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-         """, (date, thread, message, user, forum, is_approved, is_highlighted, is_spam, is_deleted, is_edited, parent))
+         isSpam, isDeleted, isEdited,parent,isRoot) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+         """, (date, thread, message, user, forum, is_approved, is_highlighted, is_spam, is_deleted, is_edited, parent,
+               is_root))
         cursor.execute(""" SELECT * FROM Post WHERE forum=%s AND user=%s AND message=%s AND thread="%s" """,
                        (forum, user, message, thread))
-
         db_id = cursor.fetchone()
         results = {
             "code": 0,
@@ -32,6 +42,12 @@ def create_post(date, thread, message, user, forum, is_approved, is_highlighted,
                 "user": user
             }
         }
+        post_id = cursor.lastrowid
+
+        base36 = int2str(int(post_id), radix=36)
+        path += str(len(base36)) + base36
+
+        cursor.execute("""UPDATE Post SET path = %s WHERE id = %s""", (path, post_id))
         cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s and isDeleted=0""", thread)
         posts_count = cursor.fetchone()
         cursor.execute(""" UPDATE Thread SET posts=%s  WHERE id=%s""", (str(posts_count[0]), thread))

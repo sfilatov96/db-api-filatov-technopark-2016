@@ -519,16 +519,17 @@ def forum_post_list_index():
 
 @route("/db/api/thread/listPosts/", method="GET")
 def post_list_index():
-    since = request.GET.get("since")
-    order = request.GET.get("order")
+    since = request.GET.get("since", " ")
+    order = request.GET.get("order", "DESC")
     limit = request.GET.get("limit")
     thread = request.GET.get("thread")
-    sort = request.GET.get("sort")
+    sort = request.GET.get("sort", "flat")
     if thread:
         result = thread_post_list(since, order, limit, thread, sort)
         print json.dumps(result)
         return json.dumps(result)
     else:
+        print "plt"
         return response_dict[2]
 
 
