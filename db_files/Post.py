@@ -22,7 +22,7 @@ def create_post(date, thread, message, user, forum, is_approved, is_highlighted,
          isSpam, isDeleted, isEdited,parent,isRoot) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
          """, (date, thread, message, user, forum, is_approved, is_highlighted, is_spam, is_deleted, is_edited, parent,
                is_root))
-        cursor.execute(""" SELECT * FROM Post WHERE forum=%s AND user=%s AND message=%s AND thread="%s" """,
+        cursor.execute(""" SELECT * FROM Post WHERE forum=%s AND user=%s AND message=%s AND thread=%s """,
                        (forum, user, message, thread))
         db_id = cursor.fetchone()
         results = {
@@ -48,7 +48,7 @@ def create_post(date, thread, message, user, forum, is_approved, is_highlighted,
         path += str(len(base36)) + base36
 
         cursor.execute("""UPDATE Post SET path = %s WHERE id = %s""", (path, post_id))
-        cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s and isDeleted=0""", thread)
+        cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s and isDeleted=0""", (thread,))
         posts_count = cursor.fetchone()
         cursor.execute(""" UPDATE Thread SET posts=%s  WHERE id=%s""", (str(posts_count[0]), thread))
         print posts_count[0]
@@ -70,21 +70,21 @@ def detail_post(related, post):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Post WHERE id=%s """, post)
+        cursor.execute("""SELECT * FROM Post WHERE id=%s """, (post,))
         db_id = cursor.fetchone()
-        cursor.execute("""SELECT * FROM User WHERE email=%s""", db_id[4])
+        cursor.execute("""SELECT * FROM User WHERE email=%s""", (db_id[4],))
         user_id = cursor.fetchone()
-        cursor.execute(""" SELECT * FROM User_followers WHERE User=%s""", db_id[4])
+        cursor.execute(""" SELECT * FROM User_followers WHERE User=%s""", (db_id[4],))
         followers = cursor.fetchall()
-        cursor.execute(""" SELECT * FROM User_followers WHERE Followers=%s""", db_id[4])
+        cursor.execute(""" SELECT * FROM User_followers WHERE Followers=%s""", (db_id[4],))
         following = cursor.fetchall()
-        cursor.execute(""" SELECT thread_id FROM Thread_followers WHERE follower_email=%s""", db_id[4])
+        cursor.execute(""" SELECT thread_id FROM Thread_followers WHERE follower_email=%s""", (db_id[4],))
         sub = cursor.fetchall()
-        cursor.execute(""" SELECT * FROM Forum WHERE short_name=%s""", db_id[5])
+        cursor.execute(""" SELECT * FROM Forum WHERE short_name=%s""", (db_id[5],))
         forum = cursor.fetchone()
-        cursor.execute(""" SELECT * FROM Thread WHERE id=%s""", db_id[2])
+        cursor.execute(""" SELECT * FROM Thread WHERE id=%s""", (db_id[2],))
         thread = cursor.fetchone()
-        cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s and isDeleted=0""", thread[0])
+        cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s and isDeleted=0""", (thread[0],))
         posts = cursor.fetchone()
         user_buf = db_id[4]
         if "user" in related:
@@ -222,10 +222,10 @@ def post_remove(post_id):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, (post_id,))
         del_sel = cursor.fetchone()
         if del_sel:
-            cursor.execute("""UPDATE  Post SET isDeleted=1  WHERE id=%s """, post_id)
+            cursor.execute("""UPDATE  Post SET isDeleted=1  WHERE id=%s """, (post_id,))
             results = {
                 "code": 0,
                 "response": {
@@ -246,10 +246,10 @@ def post_restore(post_id):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, (post_id,))
         del_sel = cursor.fetchone()
         if del_sel:
-            cursor.execute("""UPDATE  Post SET isDeleted=0  WHERE id=%s """, post_id)
+            cursor.execute("""UPDATE  Post SET isDeleted=0  WHERE id=%s """, (post_id,))
             results = {
                 "code": 0,
                 "response": {
@@ -270,7 +270,7 @@ def post_update(post_id, message):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, (post_id,))
         db_id = cursor.fetchone()
         if db_id:
             cursor.execute("""UPDATE  Post SET message=%s  WHERE id=%s """, (message, post_id))
@@ -309,18 +309,18 @@ def post_vote(post_id, vote):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+        cursor.execute("""SELECT * FROM Post WHERE id=%s  """, (post_id,))
         is_id = cursor.fetchone()
         if is_id:
             print vote
             if vote == 1:
-                cursor.execute("""UPDATE  Post SET likes=likes+1, points=points+1 WHERE id=%s """, post_id)
+                cursor.execute("""UPDATE  Post SET likes=likes+1, points=points+1 WHERE id=%s """, (post_id,))
             elif vote == -1:
-                cursor.execute("""UPDATE  Post SET dislikes=dislikes+1, points=points-1 WHERE id=%s """, post_id)
+                cursor.execute("""UPDATE  Post SET dislikes=dislikes+1, points=points-1 WHERE id=%s """, (post_id,))
             else:
                 return response_dict[3]
 
-            cursor.execute("""SELECT * FROM Post WHERE id=%s  """, post_id)
+            cursor.execute("""SELECT * FROM Post WHERE id=%s  """, (post_id,))
             db_id = cursor.fetchone()
             results = {
                 "code": 0,

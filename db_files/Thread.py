@@ -97,11 +97,11 @@ def thread_remove(thread_id):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, thread_id)
+        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, (thread_id,))
         dels = cursor.fetchone()
         if dels:
-            cursor.execute("""UPDATE Post SET isDeleted=1 WHERE thread=%s""", thread_id)
-            cursor.execute("""UPDATE Thread SET isDeleted=1  WHERE id=%s """, thread_id)
+            cursor.execute("""UPDATE Post SET isDeleted=1 WHERE thread=%s""", (thread_id,))
+            cursor.execute("""UPDATE Thread SET isDeleted=1  WHERE id=%s """, (thread_id,))
 
             results = {
                 "code": 0,
@@ -123,11 +123,11 @@ def thread_restore(thread_id):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, thread_id)
+        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, (thread_id,))
         dels = cursor.fetchone()
         if dels:
-            cursor.execute("""UPDATE Post SET isDeleted=0 WHERE thread=%s""", thread_id)
-            cursor.execute("""UPDATE  Thread SET isDeleted=0  WHERE id=%s """, thread_id)
+            cursor.execute("""UPDATE Post SET isDeleted=0 WHERE thread=%s""", (thread_id,))
+            cursor.execute("""UPDATE  Thread SET isDeleted=0  WHERE id=%s """, (thread_id,))
 
             results = {
                 "code": 0,
@@ -149,10 +149,10 @@ def thread_close(thread_id):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, thread_id)
+        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, (thread_id,))
         dels = cursor.fetchone()
         if dels:
-            cursor.execute("""UPDATE  Thread SET isClosed=1  WHERE id=%s """, thread_id)
+            cursor.execute("""UPDATE  Thread SET isClosed=1  WHERE id=%s """, (thread_id,))
 
             results = {
                 "code": 0,
@@ -174,10 +174,10 @@ def thread_open(thread_id):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, thread_id)
+        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, (thread_id,))
         dels = cursor.fetchone()
         if dels:
-            cursor.execute("""UPDATE  Thread SET isClosed=0  WHERE id=%s """, thread_id)
+            cursor.execute("""UPDATE  Thread SET isClosed=0  WHERE id=%s """, (thread_id,))
 
             results = {
                 "code": 0,
@@ -199,19 +199,19 @@ def detail_thread(related, thread):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Thread WHERE id=%s """, thread)
+        cursor.execute("""SELECT * FROM Thread WHERE id=%s """, (thread,))
         db_id = cursor.fetchone()
-        cursor.execute("""SELECT * FROM User WHERE email=%s""", db_id[4])
+        cursor.execute("""SELECT * FROM User WHERE email=%s""", (db_id[4],))
         user_id = cursor.fetchone()
-        cursor.execute(""" SELECT * FROM User_followers WHERE User=%s""", db_id[4])
+        cursor.execute(""" SELECT * FROM User_followers WHERE User=%s""", (db_id[4],))
         followers = cursor.fetchall()
-        cursor.execute(""" SELECT * FROM User_followers WHERE Followers=%s""", db_id[4])
+        cursor.execute(""" SELECT * FROM User_followers WHERE Followers=%s""", (db_id[4],))
         following = cursor.fetchall()
-        cursor.execute(""" SELECT thread_id FROM Thread_followers WHERE follower_email=%s""", db_id[4])
+        cursor.execute(""" SELECT thread_id FROM Thread_followers WHERE follower_email=%s""", (db_id[4],))
         sub = cursor.fetchall()
-        cursor.execute(""" SELECT * FROM Forum WHERE short_name=%s""", db_id[1])
+        cursor.execute(""" SELECT * FROM Forum WHERE short_name=%s""", (db_id[1],))
         forum = cursor.fetchone()
-        cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s and isDeleted=0""", db_id[0])
+        cursor.execute(""" SELECT count(*) FROM Post WHERE thread=%s and isDeleted=0""", (db_id[0],))
         posts_count = cursor.fetchone()
 
         user_buf = db_id[4]
@@ -269,7 +269,7 @@ def update_thread(thread_id, slug, message):
     cursor = db.cursor()
     try:
         cursor.execute("""UPDATE Thread SET message=%s, slug=%s WHERE id=%s""", (message, slug, thread_id))
-        cursor.execute(""" SELECT * FROM Thread WHERE id=%s""", thread_id)
+        cursor.execute(""" SELECT * FROM Thread WHERE id=%s""", (thread_id,))
         db_id = cursor.fetchone()
         results = {
             "code": 0,
@@ -358,18 +358,18 @@ def thread_vote(thread, vote):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, thread)
+        cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, (thread,))
         is_id = cursor.fetchone()
         if is_id:
             print vote
             if vote == 1:
-                cursor.execute("""UPDATE Thread SET likes=likes+1, points=points+1 WHERE id=%s """, thread)
+                cursor.execute("""UPDATE Thread SET likes=likes+1, points=points+1 WHERE id=%s """, (thread,))
             elif vote == -1:
-                cursor.execute("""UPDATE Thread SET dislikes=dislikes+1, points=points-1 WHERE id=%s """, thread)
+                cursor.execute("""UPDATE Thread SET dislikes=dislikes+1, points=points-1 WHERE id=%s """, (thread,))
             else:
                 return response_dict[3]
 
-            cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, thread)
+            cursor.execute("""SELECT * FROM Thread WHERE id=%s  """, (thread,))
             db_id = cursor.fetchone()
             results = {
                 "code": 0,

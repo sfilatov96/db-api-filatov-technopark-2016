@@ -9,7 +9,7 @@ def create(username, about, name, email, is_anon):
     try:
         cursor.execute("""INSERT INTO User (username,name,email,isAnonymous,about) VALUES (%s,%s,%s,%s,%s) """,
                        (username, name, email, is_anon, about))
-        cursor.execute(""" SELECT id FROM User WHERE email=%s""", email)
+        cursor.execute(""" SELECT id FROM User WHERE email='%s'""", email)
         db_id = cursor.fetchone()
         results = {
             "code": 0,
@@ -45,7 +45,7 @@ def detail(email):
     try:
         email = email.replace("%40", "@")
         print email
-        cursor.execute(""" SELECT * FROM User WHERE email=%s""", email)
+        cursor.execute(""" SELECT * FROM User WHERE email=%s""", (email,))
         str = cursor.fetchone()
         if not str:
             return response_dict[1]
@@ -79,7 +79,7 @@ def detail(email):
 def func_subscribe(email):
     db = connect()
     cursor = db.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute(""" SELECT thread_id FROM Thread_followers WHERE follower_email=%s""", email)
+    cursor.execute(""" SELECT thread_id FROM Thread_followers WHERE follower_email=%s""", (email,))
     subscribe = [i['thread_id'] for i in cursor.fetchall()]
     cursor.close()
     db.commit()
@@ -92,17 +92,17 @@ def follow(follower, followee):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute(""" SELECT * FROM User WHERE email=%s""", followee)
+        cursor.execute(""" SELECT * FROM User WHERE email=%s""", (followee,))
         str = cursor.fetchone()
-        cursor.execute(""" SELECT * FROM User WHERE email=%s""", follower)
+        cursor.execute(""" SELECT * FROM User WHERE email=%s""", (follower,))
         str2 = cursor.fetchone()
         if str2:
             cursor.execute("""INSERT INTO User_followers (User,Followers) VALUES (%s,%s) """, (follower, followee))
-            cursor.execute(""" SELECT Followers FROM User_followers WHERE User=%s""", follower)
+            cursor.execute(""" SELECT Followers FROM User_followers WHERE User=%s""", (follower,))
             followers = cursor.fetchall()
-            cursor.execute(""" SELECT User FROM User_followers WHERE Followers=%s""", follower)
+            cursor.execute(""" SELECT User FROM User_followers WHERE Followers=%s""", (follower,))
             following = cursor.fetchall()
-            cursor.execute(""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", followee)
+            cursor.execute(""" SELECT count(*) FROM Thread_followers WHERE follower_email=%s""", (followee,))
             count_subscribe = cursor.fetchone()
 
             print str
@@ -143,7 +143,7 @@ def follow(follower, followee):
 def func_followers(email):
     db = connect()
     cursor = db.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute(""" SELECT Followers FROM User_followers WHERE User=%s """, (email))
+    cursor.execute(""" SELECT Followers FROM User_followers WHERE User=%s """, (email,))
     followers = [i['Followers'] for i in cursor.fetchall()]
     cursor.close()
     db.commit()
@@ -155,7 +155,7 @@ def func_followers(email):
 def func_following(email):
     db = connect()
     cursor = db.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute(""" SELECT User FROM User_followers WHERE Followers=%s """, (email))
+    cursor.execute(""" SELECT User FROM User_followers WHERE Followers=%s """, (email,))
     following = [i['User'] for i in cursor.fetchall()]
     cursor.close()
     db.commit()
@@ -168,7 +168,7 @@ def list_followers(email, order, limit, since_id):
     db = connect()
     cursor = db.cursor(MySQLdb.cursors.DictCursor)
     try:
-        cursor.execute(""" SELECT * FROM User WHERE email=%s""", email)
+        cursor.execute(""" SELECT * FROM User WHERE email=%s""", (email,))
         if email is None:
             return response_dict[1]
 
@@ -224,7 +224,7 @@ def list_following(email, order, limit, since_id):
     db = connect()
     cursor = db.cursor(MySQLdb.cursors.DictCursor)
     try:
-        cursor.execute(""" SELECT * FROM User WHERE email=%s""", email)
+        cursor.execute(""" SELECT * FROM User WHERE email=%s""", (email,))
         if email is None:
             return response_dict[1]
 
@@ -249,9 +249,9 @@ def list_following(email, order, limit, since_id):
             followers = func_followers(user['email'])
 
             cursor.execute(
-                """SELECT `thread_id`
-                    FROM `Thread_followers`
-                    WHERE `follower_email` = %s;""",
+                """SELECT thread_id
+                    FROM Thread_followers
+                    WHERE follower_email = %s;""",
                 (
                     user['email'],
                 )
@@ -277,7 +277,7 @@ def profile_update(about, user, name):
     cursor = db.cursor()
     try:
         cursor.execute(""" UPDATE User SET name=%s,about=%s WHERE email=%s""", (name, about, user))
-        cursor.execute(""" SELECT * FROM User WHERE email=%s""", user)
+        cursor.execute(""" SELECT * FROM User WHERE email=%s""", (user,))
         str = cursor.fetchone()
 
         print str
@@ -307,9 +307,9 @@ def unfollow(follower, followee):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute(""" SELECT * FROM User WHERE email=%s""", followee)
+        cursor.execute(""" SELECT * FROM User WHERE email=%s""", (followee,))
         str = cursor.fetchone()
-        cursor.execute(""" SELECT * FROM User WHERE email=%s""", follower)
+        cursor.execute(""" SELECT * FROM User WHERE email=%s""", (follower,))
         str2 = cursor.fetchone()
         if str2:
             cursor.execute("""DELETE FROM User_followers WHERE User=%s AND Followers=%s """, (follower, followee))

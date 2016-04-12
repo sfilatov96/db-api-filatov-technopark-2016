@@ -61,9 +61,9 @@ def create_forum(name, short_name, user):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM User WHERE email=%s""", user)
+        cursor.execute("""SELECT * FROM User WHERE email=%s""", (user,))
         cursor.execute("""INSERT INTO Forum (name,short_name,user) VALUES (%s,%s,%s) """, (name, short_name, user))
-        cursor.execute(""" SELECT id FROM Forum WHERE name=%s """, name)
+        cursor.execute(""" SELECT id FROM Forum WHERE name=%s """, (name,))
         db_id = cursor.fetchone()
         print db_id
         results = {
@@ -92,9 +92,9 @@ def detail_forum(related, forum):
     db = connect()
     cursor = db.cursor()
     try:
-        cursor.execute("""SELECT * FROM Forum WHERE short_name=%s """, forum)
+        cursor.execute("""SELECT * FROM Forum WHERE short_name=%s """, (forum,))
         db_id = cursor.fetchone()
-        cursor.execute("""SELECT * FROM User WHERE email=%s""", db_id[3])
+        cursor.execute("""SELECT * FROM User WHERE email=%s""", (db_id[3],))
         user_id = cursor.fetchone()
         if related:
             results = {
