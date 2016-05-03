@@ -575,5 +575,4 @@ def post_list_index():
     else:
         return response_dict[2]
 
-
-run(host='localhost', port=8080)
+app = bottle.default_app()
