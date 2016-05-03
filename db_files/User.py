@@ -9,7 +9,7 @@ def create(username, about, name, email, is_anon):
     try:
         cursor.execute("""INSERT INTO User (username,name,email,isAnonymous,about) VALUES (%s,%s,%s,%s,%s) """,
                        (username, name, email, is_anon, about))
-        cursor.execute(""" SELECT id FROM User WHERE email='%s'""", email)
+        cursor.execute(""" SELECT id FROM User WHERE email=%s """, (email,))
         db_id = cursor.fetchone()
         results = {
             "code": 0,
@@ -33,8 +33,11 @@ def create(username, about, name, email, is_anon):
         elif e[0] == 1452:
             return response_dict[1]
         else:
+            print e
             return response_dict[4]
-    except MySQLdb.Error:
+
+    except MySQLdb.Error as e:
+        print e
         results = response_dict[4]
         return results
 
